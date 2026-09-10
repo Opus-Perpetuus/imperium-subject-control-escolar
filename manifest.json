@@ -103,6 +103,114 @@
       "label": "Editar Materias"
     }
   ],
+  "menu": [
+    {
+      "id": "control-escolar.root",
+      "label": "Control escolar",
+      "order": 0,
+      "children": [
+        {
+          "id": "control-escolar.alumnos",
+          "label": "Alumnos",
+          "pageId": "control-escolar.alumnos",
+          "order": 0,
+          "path": "alumnos",
+          "permission": "subject.control-escolar.alumnos.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.grados-escolares",
+          "label": "Grados escolares",
+          "pageId": "control-escolar.grados-escolares",
+          "order": 1,
+          "path": "grados-escolares",
+          "permission": "subject.control-escolar.grados-escolares.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.ciclos-escolares",
+          "label": "Ciclos escolares",
+          "pageId": "control-escolar.ciclos-escolares",
+          "order": 2,
+          "path": "ciclos-escolares",
+          "permission": "subject.control-escolar.ciclos-escolares.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.materias",
+          "label": "Materias",
+          "pageId": "control-escolar.materias",
+          "order": 3,
+          "path": "materias",
+          "permission": "subject.control-escolar.materias.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.escuelas",
+          "label": "Escuelas",
+          "pageId": "control-escolar.escuelas",
+          "order": 4,
+          "path": "escuelas",
+          "permission": "subject.control-escolar.escuelas.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.grupo",
+          "label": "Grupos",
+          "pageId": "control-escolar.grupo",
+          "order": 5,
+          "path": "grupo",
+          "permission": "subject.control-escolar.grupo.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.aulas",
+          "label": "Aulas",
+          "pageId": "control-escolar.aulas",
+          "order": 5,
+          "path": "aulas",
+          "permission": "subject.control-escolar.aulas.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.horarios",
+          "label": "Horarios",
+          "pageId": "control-escolar.horarios",
+          "order": 6,
+          "path": "horarios",
+          "permission": "subject.control-escolar.horarios.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.registro-asistencias",
+          "label": "Registro de asistencias",
+          "pageId": "control-escolar.registro-asistencias",
+          "order": 7,
+          "path": "registro-asistencias",
+          "permission": "subject.control-escolar.registro-asistencias.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.lista-asistencia",
+          "label": "Listas de asistencia",
+          "pageId": "control-escolar.lista-asistencia",
+          "order": 7,
+          "path": "lista-asistencia",
+          "permission": "subject.control-escolar.lista-asistencia.read",
+          "icon": "document"
+        },
+        {
+          "id": "control-escolar.registro-incidencias",
+          "label": "Registro de incidencias",
+          "pageId": "control-escolar.registro-incidencias",
+          "order": 8,
+          "path": "registro-incidencias",
+          "permission": "subject.control-escolar.registro-incidencias.read",
+          "icon": "document"
+        }
+      ]
+    }
+  ],
   "pages": [
     {
       "id": "control-escolar.registro-incidencias",
@@ -160,117 +268,21 @@
       "permission": "subject.control-escolar.materias.read"
     }
   ],
-  "menu": [
-    {
-      "id": "control-escolar.root",
-      "label": "Control escolar",
-      "order": 0,
-      "children": [
-        {
-          "id": "control-escolar.alumnos",
-          "label": "Alumnos",
-          "order": 0,
-          "pageId": "control-escolar.alumnos",
-          "path": "alumnos",
-          "permission": "subject.control-escolar.alumnos.read"
-        },
-        {
-          "id": "control-escolar.grados-escolares",
-          "label": "Grados escolares",
-          "order": 1,
-          "pageId": "control-escolar.grados-escolares",
-          "path": "grados-escolares",
-          "permission": "subject.control-escolar.grados-escolares.read"
-        },
-        {
-          "id": "control-escolar.ciclos-escolares",
-          "label": "Ciclos escolares",
-          "order": 2,
-          "pageId": "control-escolar.ciclos-escolares",
-          "path": "ciclos-escolares",
-          "permission": "subject.control-escolar.ciclos-escolares.read"
-        },
-        {
-          "id": "control-escolar.materias",
-          "label": "Materias",
-          "order": 3,
-          "pageId": "control-escolar.materias",
-          "path": "materias",
-          "permission": "subject.control-escolar.materias.read"
-        },
-        {
-          "id": "control-escolar.escuelas",
-          "label": "Escuelas",
-          "order": 4,
-          "pageId": "control-escolar.escuelas",
-          "path": "escuelas",
-          "permission": "subject.control-escolar.escuelas.read"
-        },
-        {
-          "id": "control-escolar.grupo",
-          "label": "Grupos",
-          "order": 5,
-          "pageId": "control-escolar.grupo",
-          "path": "grupo",
-          "permission": "subject.control-escolar.grupo.read"
-        },
-        {
-          "id": "control-escolar.aulas",
-          "label": "Aulas",
-          "order": 5,
-          "pageId": "control-escolar.aulas",
-          "path": "aulas",
-          "permission": "subject.control-escolar.aulas.read"
-        },
-        {
-          "id": "control-escolar.horarios",
-          "label": "Horarios",
-          "order": 6,
-          "pageId": "control-escolar.horarios",
-          "path": "horarios",
-          "permission": "subject.control-escolar.horarios.read"
-        },
-        {
-          "id": "control-escolar.registro-asistencias",
-          "label": "Registro de asistencias",
-          "order": 7,
-          "pageId": "control-escolar.registro-asistencias",
-          "path": "registro-asistencias",
-          "permission": "subject.control-escolar.registro-asistencias.read"
-        },
-        {
-          "id": "control-escolar.lista-asistencia",
-          "label": "Listas de asistencia",
-          "order": 7,
-          "pageId": "control-escolar.lista-asistencia",
-          "path": "lista-asistencia",
-          "permission": "subject.control-escolar.lista-asistencia.read"
-        },
-        {
-          "id": "control-escolar.registro-incidencias",
-          "label": "Registro de incidencias",
-          "order": 8,
-          "pageId": "control-escolar.registro-incidencias",
-          "path": "registro-incidencias",
-          "permission": "subject.control-escolar.registro-incidencias.read"
-        }
-      ]
-    }
-  ],
   "storage": {
-    "domain": "shared-nox-postgres"
+    "domain": "shared-nox-postgres",
+    "files": false
   },
   "resources": {
-    "registro-incidencias": "registro_incidencias",
+    "registro-incidencias": "registro-incidencias",
     "grupo": "grupo",
-    "registro-asistencias": "registro_asistencias",
+    "registro-asistencias": "registro-asistencias",
     "aulas": "aulas",
     "alumnos": "alumnos",
     "horarios": "horarios",
-    "lista-asistencia": "lista_asistencia",
+    "lista-asistencia": "lista-asistencia",
     "escuelas": "escuelas",
-    "grados-escolares": "grados_escolares",
-    "ciclos-escolares": "ciclos_escolares",
+    "grados-escolares": "grados-escolares",
+    "ciclos-escolares": "ciclos-escolares",
     "materias": "materias"
   }
 }
