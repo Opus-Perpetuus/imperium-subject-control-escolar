@@ -49,11 +49,11 @@ export const escuelas_pages: KirletPageDecl[] = [
           form: {
             fields: [
               { name: "name", component: "input-text", label: "Nombre", required: true },
-              { name: "description", component: "input-text", label: "Descripción" },
+              { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
               { name: "clave", component: "input-text", label: "clave" },
               { name: "direccion", component: "input-text", label: "direccion" },
-              { name: "telefono", component: "input-text", label: "telefono" },
+              { name: "telefono", component: "input-text", label: "telefono", type: "tel" },
             ],
           },
         },

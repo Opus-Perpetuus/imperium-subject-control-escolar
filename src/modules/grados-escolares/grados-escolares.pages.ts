@@ -48,7 +48,7 @@ export const grados_escolares_pages: KirletPageDecl[] = [
           form: {
             fields: [
               { name: "name", component: "input-text", label: "Nombre", required: true },
-              { name: "description", component: "input-text", label: "Descripción" },
+              { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
               { name: "clave", component: "input-text", label: "clave" },
               { name: "nivel_orden", component: "input-number", label: "nivel orden" },

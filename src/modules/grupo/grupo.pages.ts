@@ -50,11 +50,11 @@ export const grupo_pages: KirletPageDecl[] = [
           form: {
             fields: [
               { name: "name", component: "input-text", label: "Nombre", required: true },
-              { name: "description", component: "input-text", label: "Descripción" },
+              { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
-              { name: "grado_escolar_id", component: "input-text", label: "grado escolar id" },
-              { name: "ciclo_escolar_id", component: "input-text", label: "ciclo escolar id" },
-              { name: "escuela_id", component: "input-text", label: "escuela id" },
+              { name: "grado_escolar_id", component: "input-datalist", label: "grado escolar id", optionsSource: "api://m/subject-control-escolar/grados-escolares?as=options&limite=1000" },
+              { name: "ciclo_escolar_id", component: "input-datalist", label: "ciclo escolar id", optionsSource: "api://m/subject-control-escolar/ciclos-escolares?as=options&limite=1000" },
+              { name: "escuela_id", component: "input-datalist", label: "escuela id", optionsSource: "api://m/subject-control-escolar/escuelas?as=options&limite=1000" },
               { name: "letra", component: "input-text", label: "letra" },
             ],
           },

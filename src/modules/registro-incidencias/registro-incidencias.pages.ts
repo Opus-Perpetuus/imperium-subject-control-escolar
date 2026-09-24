@@ -52,7 +52,7 @@ export const registro_incidencias_pages: KirletPageDecl[] = [
           form: {
             fields: [
               { name: "name", component: "input-text", label: "Nombre", required: true },
-              { name: "description", component: "input-text", label: "Descripción" },
+              { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
               { name: "alumno_id", component: "input-text", label: "alumno id" },
               { name: "grupo_id", component: "input-text", label: "grupo id" },
@@ -63,8 +63,8 @@ export const registro_incidencias_pages: KirletPageDecl[] = [
               { name: "escuela_id", component: "input-text", label: "escuela id" },
               { name: "tipo", component: "input-text", label: "tipo" },
               { name: "justificada", component: "input-checkbox", label: "justificada" },
-              { name: "evidencia", component: "input-text", label: "evidencia" },
-              { name: "fecha_asistencia", component: "input-text", label: "fecha asistencia" },
+              { name: "evidencia", component: "input-image", label: "evidencia" },
+              { name: "fecha_asistencia", component: "input-date", label: "fecha asistencia" },
             ],
           },
         },

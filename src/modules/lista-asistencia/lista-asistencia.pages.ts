@@ -52,7 +52,7 @@ export const lista_asistencia_pages: KirletPageDecl[] = [
           form: {
             fields: [
               { name: "name", component: "input-text", label: "Nombre", required: true },
-              { name: "description", component: "input-text", label: "Descripción" },
+              { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
               { name: "registro_asistencia_id", component: "input-text", label: "registro asistencia id" },
               { name: "alumno_id", component: "input-text", label: "alumno id" },
@@ -61,8 +61,8 @@ export const lista_asistencia_pages: KirletPageDecl[] = [
               { name: "numero_lista", component: "input-number", label: "numero lista" },
               { name: "estado", component: "input-text", label: "estado" },
               { name: "justificada", component: "input-checkbox", label: "justificada" },
-              { name: "evidencia", component: "input-text", label: "evidencia" },
-              { name: "registro_incidencia_id", component: "input-text", label: "registro incidencia id" },
+              { name: "evidencia", component: "input-image", label: "evidencia" },
+              { name: "registro_incidencia_id", component: "input-datalist", label: "registro incidencia id", optionsSource: "api://m/subject-control-escolar/registro-incidencias?as=options&limite=1000" },
             ],
           },
         },

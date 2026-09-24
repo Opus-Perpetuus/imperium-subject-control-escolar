@@ -52,13 +52,21 @@ export const registro_asistencias_pages: KirletPageDecl[] = [
           form: {
             fields: [
               { name: "name", component: "input-text", label: "Nombre", required: true },
-              { name: "description", component: "input-text", label: "Descripción" },
+              { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
-              { name: "grupo_id", component: "input-text", label: "grupo id" },
-              { name: "materia_id", component: "input-text", label: "materia id" },
-              { name: "teacher_user_id", component: "input-text", label: "teacher user id" },
-              { name: "fecha_asistencia", component: "input-text", label: "fecha asistencia" },
-              { name: "estatus", component: "input-text", label: "estatus" },
+              { name: "grupo_id", component: "input-datalist", label: "grupo id", optionsSource: "api://m/subject-control-escolar/grupo?as=options&limite=1000" },
+              { name: "materia_id", component: "input-datalist", label: "materia id", optionsSource: "api://m/subject-control-escolar/materias?as=options&limite=1000" },
+              { name: "teacher_user_id", component: "input-datalist", label: "teacher user id", optionsSource: "api://m/subject-configuracion/user?as=options&limite=1000" },
+              { name: "fecha_asistencia", component: "input-date", label: "fecha asistencia" },
+              {
+                name: "estatus",
+                component: "input-menu",
+                label: "estatus",
+                options: [
+                  { value: "abierta", label: "Abierta" },
+                  { value: "cerrada", label: "Cerrada" },
+                ],
+              },
               { name: "total_alumnos", component: "input-number", label: "total alumnos" },
             ],
           },

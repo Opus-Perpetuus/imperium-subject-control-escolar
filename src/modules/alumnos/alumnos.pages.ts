@@ -51,13 +51,13 @@ export const alumnos_pages: KirletPageDecl[] = [
           form: {
             fields: [
               { name: "name", component: "input-text", label: "Nombre", required: true },
-              { name: "description", component: "input-text", label: "Descripción" },
+              { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
-              { name: "user_id", component: "input-text", label: "user id" },
-              { name: "grupo_id", component: "input-text", label: "grupo id" },
+              { name: "user_id", component: "input-datalist", label: "user id", optionsSource: "api://m/subject-configuracion/user?as=options&limite=1000" },
+              { name: "grupo_id", component: "input-datalist", label: "grupo id", optionsSource: "api://m/subject-control-escolar/grupo?as=options&limite=1000" },
               { name: "numero_lista", component: "input-number", label: "numero lista" },
-              { name: "email_contacto", component: "input-text", label: "email contacto" },
-              { name: "telefono_contacto", component: "input-text", label: "telefono contacto" },
+              { name: "email_contacto", component: "input-text", label: "email contacto", type: "email" },
+              { name: "telefono_contacto", component: "input-text", label: "telefono contacto", type: "tel" },
             ],
           },
         },
