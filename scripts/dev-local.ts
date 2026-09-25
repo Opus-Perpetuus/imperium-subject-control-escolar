@@ -52,6 +52,7 @@ const CATALOG_ORDER = [
   "turnos",
   "vehiculos",
   "ventas",
+  "tienda",
 ];
 const idx = CATALOG_ORDER.indexOf(slug);
 const PORT = Number(
@@ -219,7 +220,14 @@ async function main() {
   await attach(public_url);
   const inst = await fetch(
     `${CORE}/api/subjects/install-schemas/subject-${slug}`,
-    { method: "POST" },
+    {
+      method: "POST",
+      headers: {
+        "x-core-subject-gateway-secret":
+          process.env.CORE_SUBJECT_GATEWAY_SECRET ??
+          "imperium-subject-dev-secret",
+      },
+    },
   );
   console.log(
     `subject-dev-local: schema ${inst.status}  adjunto ${public_url}`,
