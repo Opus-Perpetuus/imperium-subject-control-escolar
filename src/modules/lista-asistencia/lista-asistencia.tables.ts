@@ -25,10 +25,15 @@ export const lista_asistencia_tables: KirletTableDecl[] = [
       { name: "justificada", type: "boolean" },
       { name: "evidencia", type: "text" },
       { name: "registro_incidencia_id", type: "text" },
+      { name: "fecha", type: "text" },
+      { name: "marcado_at", type: "text" },
+      { name: "marcado_por", type: "text" },
     ],
     indexes: [
       { name: "idx_lista_asistencia_name", columns: ["name"] },
       { name: "idx_lista_asistencia_active", columns: ["is_active"] },
+      { name: "idx_lista_asistencia_registro", columns: ["registro_asistencia_id"] },
+      { name: "idx_lista_asistencia_alumno_fecha", columns: ["alumno_id", "fecha"] },
     ],
   },
 ];

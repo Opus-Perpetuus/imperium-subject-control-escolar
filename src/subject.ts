@@ -11,6 +11,8 @@ import { escuelas_module } from "./modules/escuelas/escuelas.routes.ts";
 import { grados_escolares_module } from "./modules/grados-escolares/grados-escolares.routes.ts";
 import { ciclos_escolares_module } from "./modules/ciclos-escolares/ciclos-escolares.routes.ts";
 import { materias_module } from "./modules/materias/materias.routes.ts";
+import { tipos_incidencia_module } from "./modules/tipos-incidencia/tipos-incidencia.routes.ts";
+import { enlaces_compartidos_module } from "./modules/enlaces-compartidos/enlaces-compartidos.routes.ts";
 import { seed_demo } from "./seed.ts";
 
 export const SUBJECT = define_subject({
@@ -19,13 +21,29 @@ export const SUBJECT = define_subject({
   version: pkg.version,
   image: `ghcr.io/opus-perpetuus/subject-control-escolar:${pkg.version}`,
   compat: { nox: ">=0.5.0", kit: "^0.5.0" },
-  schema_version: 1,
+  schema_version: 2,
+  // Solo la página de enlaces compartidos (familias y dirección) es pública.
+  public: true,
   menu_root: {
     id: "control-escolar.root",
     label: "Control escolar",
     order: 0,
   },
-  modules: [registro_incidencias_module, grupo_module, registro_asistencias_module, aulas_module, alumnos_module, horarios_module, lista_asistencia_module, escuelas_module, grados_escolares_module, ciclos_escolares_module, materias_module],
+  modules: [
+    registro_incidencias_module,
+    grupo_module,
+    registro_asistencias_module,
+    aulas_module,
+    alumnos_module,
+    horarios_module,
+    lista_asistencia_module,
+    escuelas_module,
+    grados_escolares_module,
+    ciclos_escolares_module,
+    materias_module,
+    tipos_incidencia_module,
+    enlaces_compartidos_module,
+  ],
   seed: seed_demo,
 });
 

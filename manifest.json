@@ -101,6 +101,22 @@
     {
       "id": "subject.control-escolar.materias.write",
       "label": "Editar Materias"
+    },
+    {
+      "id": "subject.control-escolar.tipos-incidencia.read",
+      "label": "Ver Tipos de incidencia"
+    },
+    {
+      "id": "subject.control-escolar.tipos-incidencia.write",
+      "label": "Editar Tipos de incidencia"
+    },
+    {
+      "id": "subject.control-escolar.enlaces-compartidos.read",
+      "label": "Ver Enlaces compartidos"
+    },
+    {
+      "id": "subject.control-escolar.enlaces-compartidos.write",
+      "label": "Crear y retirar Enlaces compartidos"
     }
   ],
   "menu": [
@@ -207,6 +223,15 @@
           "path": "registro-incidencias",
           "permission": "subject.control-escolar.registro-incidencias.read",
           "icon": "document"
+        },
+        {
+          "id": "control-escolar.tipos-incidencia",
+          "label": "Tipos de incidencia",
+          "pageId": "control-escolar.tipos-incidencia",
+          "order": 9,
+          "path": "tipos-incidencia",
+          "permission": "subject.control-escolar.tipos-incidencia.read",
+          "icon": "document"
         }
       ]
     }
@@ -266,11 +291,31 @@
       "id": "control-escolar.materias",
       "path": "materias",
       "permission": "subject.control-escolar.materias.read"
+    },
+    {
+      "id": "control-escolar.tipos-incidencia",
+      "path": "tipos-incidencia",
+      "permission": "subject.control-escolar.tipos-incidencia.read"
+    },
+    {
+      "id": "control-escolar.compartido",
+      "path": "compartido",
+      "permission": "subject.control-escolar.enlaces-compartidos.read"
     }
   ],
   "storage": {
     "domain": "shared-nox-postgres",
     "files": false
+  },
+  "public": {
+    "pages": [
+      {
+        "id": "control-escolar.compartido",
+        "access": "anonymous",
+        "segment": "compartido",
+        "label": "Documento compartido"
+      }
+    ]
   },
   "resources": {
     "registro-incidencias": "registro-incidencias",
@@ -283,6 +328,8 @@
     "escuelas": "escuelas",
     "grados-escolares": "grados-escolares",
     "ciclos-escolares": "ciclos-escolares",
-    "materias": "materias"
+    "materias": "materias",
+    "tipos-incidencia": "tipos-incidencia",
+    "enlaces-compartidos": "enlaces-compartidos"
   }
 }

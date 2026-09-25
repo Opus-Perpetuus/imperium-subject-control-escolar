@@ -27,10 +27,18 @@ export const registro_incidencias_tables: KirletTableDecl[] = [
       { name: "justificada", type: "boolean" },
       { name: "evidencia", type: "text" },
       { name: "fecha_asistencia", type: "text" },
+      { name: "tipo_incidencia_id", type: "text" },
+      { name: "ciclo_escolar_id", type: "text" },
+      { name: "categoria", type: "text" },
+      { name: "severidad", type: "text" },
+      { name: "fecha", type: "text" },
+      { name: "hora", type: "text" },
     ],
     indexes: [
       { name: "idx_registro_incidencias_name", columns: ["name"] },
       { name: "idx_registro_incidencias_active", columns: ["is_active"] },
+      { name: "idx_registro_incidencias_alumno_fecha", columns: ["alumno_id", "fecha"] },
+      { name: "idx_registro_incidencias_grupo_fecha", columns: ["grupo_id", "fecha"] },
     ],
   },
 ];

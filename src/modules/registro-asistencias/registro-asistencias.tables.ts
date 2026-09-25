@@ -22,10 +22,17 @@ export const registro_asistencias_tables: KirletTableDecl[] = [
       { name: "fecha_asistencia", type: "text" },
       { name: "estatus", type: "text" },
       { name: "total_alumnos", type: "real" },
+      { name: "escuela_id", type: "text" },
+      { name: "ciclo_escolar_id", type: "text" },
+      { name: "hora_inicio", type: "text" },
+      { name: "hora_fin", type: "text" },
+      { name: "presentes", type: "real" },
+      { name: "ausentes", type: "real" },
     ],
     indexes: [
       { name: "idx_registro_asistencias_name", columns: ["name"] },
       { name: "idx_registro_asistencias_active", columns: ["is_active"] },
+      { name: "idx_registro_asistencias_grupo_fecha", columns: ["grupo_id", "fecha_asistencia"] },
     ],
   },
 ];
