@@ -117,6 +117,22 @@
     {
       "id": "subject.control-escolar.enlaces-compartidos.write",
       "label": "Crear y retirar Enlaces compartidos"
+    },
+    {
+      "id": "subject.control-escolar.periodos-examen.read",
+      "label": "Ver Periodos de exámenes"
+    },
+    {
+      "id": "subject.control-escolar.periodos-examen.write",
+      "label": "Editar Periodos de exámenes"
+    },
+    {
+      "id": "subject.control-escolar.examenes.read",
+      "label": "Ver Exámenes"
+    },
+    {
+      "id": "subject.control-escolar.examenes.write",
+      "label": "Editar y calificar Exámenes"
     }
   ],
   "menu": [
@@ -232,6 +248,15 @@
           "path": "tipos-incidencia",
           "permission": "subject.control-escolar.tipos-incidencia.read",
           "icon": "document"
+        },
+        {
+          "id": "control-escolar.periodos-examen",
+          "label": "Periodos de exámenes",
+          "pageId": "control-escolar.periodos-examen",
+          "order": 10,
+          "path": "periodos-examen",
+          "permission": "subject.control-escolar.periodos-examen.read",
+          "icon": "document"
         }
       ]
     }
@@ -301,6 +326,11 @@
       "id": "control-escolar.compartido",
       "path": "compartido",
       "permission": "subject.control-escolar.enlaces-compartidos.read"
+    },
+    {
+      "id": "control-escolar.periodos-examen",
+      "path": "periodos-examen",
+      "permission": "subject.control-escolar.periodos-examen.read"
     }
   ],
   "storage": {
@@ -330,6 +360,8 @@
     "ciclos-escolares": "ciclos-escolares",
     "materias": "materias",
     "tipos-incidencia": "tipos-incidencia",
-    "enlaces-compartidos": "enlaces-compartidos"
+    "enlaces-compartidos": "enlaces-compartidos",
+    "periodos-examen": "periodos-examen",
+    "examenes": "examenes"
   }
 }

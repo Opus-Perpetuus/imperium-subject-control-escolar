@@ -163,5 +163,14 @@ export const registro_incidencias_module = define_module({
       permission: "subject.control-escolar.tipos-incidencia.read",
       icon: "document",
     },
+    {
+      id: "control-escolar.periodos-examen",
+      label: "Periodos de exámenes",
+      order: 10,
+      pageId: "control-escolar.periodos-examen",
+      path: "periodos-examen",
+      permission: "subject.control-escolar.periodos-examen.read",
+      icon: "document",
+    },
   ],
 });

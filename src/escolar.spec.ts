@@ -6,6 +6,7 @@ import {
 } from "@opus-perpetuus/imperium-core-kit";
 import { SUBJECT } from "./subject.ts";
 import { seed_demo } from "./seed.ts";
+import { calificar, escala_5_10, normalizar_preguntas } from "./lib/calificacion.ts";
 import { ciclo_para_fecha, ordenar_alumnos } from "./lib/escolar.ts";
 
 const TS = "2026-09-01T00:00:00.000Z";
@@ -86,6 +87,33 @@ describe("reglas", () => {
     ]);
     expect(orden.map((a) => a.id)).toEqual(["w", "y", "z", "x"]);
     expect(orden.map((a) => a.numero_lista)).toEqual([1, 2, 3, 4]);
+  });
+
+  test("calificación: opción múltiple automática, abiertas manuales, escala 5–10", () => {
+    const preguntas = normalizar_preguntas([
+      { id: "p1", tipo: "opcion", enunciado: "2+2", opciones: ["3", "4", "5"], clave: "b", puntos: 2 },
+      { id: "p2", tipo: "opcion", enunciado: "Capital", opciones: ["A", "B"], clave: "A", puntos: 2 },
+      { id: "p3", tipo: "abierta", enunciado: "Explica", puntos: 6 },
+    ]);
+    expect(preguntas[0]!.clave).toBe("B");
+    const pendiente = calificar(preguntas, [
+      { pregunta_id: "p1", respuesta: "b" },
+      { pregunta_id: "p2", respuesta: "B" },
+      { pregunta_id: "p3", respuesta: "Porque sí" },
+    ]);
+    expect(pendiente.puntos).toBe(2);
+    expect(pendiente.estado).toBe("pendiente");
+    const final = calificar(preguntas, [
+      { pregunta_id: "p1", respuesta: "B" },
+      { pregunta_id: "p2", respuesta: "B" },
+      { pregunta_id: "p3", respuesta: "Porque sí", puntos: 99 },
+    ]);
+    expect(final.respuestas[2]!.puntos).toBe(6);
+    expect(final.puntos).toBe(8);
+    expect(final.porcentaje).toBe(80);
+    expect(final.calificacion).toBe(8);
+    expect(final.estado).toBe("calificado");
+    expect(escala_5_10(12)).toBe(5);
   });
 });
 
@@ -310,5 +338,78 @@ describe("enlaces compartidos y página pública", () => {
   test("no deja reportar alumnos de otro grupo", async () => {
     const r = await call("POST", "/enlaces-compartidos/reporte", { grupo_id: "g1", alumno_ids: ["a1", "a-otro"] });
     expect(r.status).toBe(400);
+  });
+});
+
+describe("exámenes", () => {
+  test("captura, calificación y recalificación al cambiar la clave", async () => {
+    const periodo = await call("POST", "/periodos-examen", {
+      name: "Primer bimestre",
+      ciclo_escolar_id: "cic1",
+      fecha_inicio: "2026-10-01",
+      fecha_fin: "2026-10-10",
+    });
+    expect(periodo.status).toBe(201);
+    const malo = await call("POST", "/periodos-examen", {
+      name: "Al revés",
+      fecha_inicio: "2026-10-10",
+      fecha_fin: "2026-10-01",
+    });
+    expect(malo.status).toBe(400);
+
+    const examen = await call("POST", "/examenes", {
+      name: "Matemáticas B1",
+      periodo_examen_id: periodo.data.id,
+      grupo_id: "g1",
+      fecha: "2026-10-05",
+      preguntas: [
+        { id: "p1", tipo: "opcion", enunciado: "2+2", opciones: ["3", "4"], clave: "B", puntos: 5 },
+        { id: "p2", tipo: "abierta", enunciado: "Explica la suma", puntos: 5 },
+      ],
+    });
+    expect(examen.status).toBe(201);
+    expect(examen.data.total_puntos).toBe(10);
+
+    const captura = await call("GET", `/examenes/${examen.data.id}/captura`);
+    expect(captura.data.alumnos.map((a: any) => a.name)).toEqual(["Ana", "Beto", "Carla"]);
+
+    const foto = "data:image/jpeg;base64,/9j/AAAA";
+    const r = await call("PUT", `/examenes/${examen.data.id}/respuestas/a1`, {
+      respuestas: [
+        { pregunta_id: "p1", respuesta: "B" },
+        { pregunta_id: "p2", respuesta: "", foto, puntos: 3 },
+      ],
+      foto_hoja: foto,
+    });
+    expect(r.status).toBe(200);
+    expect(r.data.calificacion).toBe(8);
+    expect(r.data.tiene_foto_hoja).toBe(true);
+    expect(r.data.foto_hoja).toBeUndefined();
+    expect(r.data.respuestas[1].tiene_foto).toBe(true);
+
+    const completa = await call("GET", `/examenes/${examen.data.id}/respuestas/a1`);
+    expect(completa.data.foto_hoja).toBe(foto);
+
+    // Beto contesta A; luego se corrige la clave a A y se recalifica.
+    await call("PUT", `/examenes/${examen.data.id}/respuestas/a2`, {
+      respuestas: [{ pregunta_id: "p1", respuesta: "A" }, { pregunta_id: "p2", puntos: 5 }],
+    });
+    await call("PATCH", `/examenes/${examen.data.id}`, {
+      preguntas: [
+        { id: "p1", tipo: "opcion", enunciado: "2+2", opciones: ["3", "4"], clave: "A", puntos: 5 },
+        { id: "p2", tipo: "abierta", enunciado: "Explica la suma", puntos: 5 },
+      ],
+    });
+    const resultados = await call("GET", `/examenes/${examen.data.id}/resultados`);
+    const por_alumno = Object.fromEntries(
+      resultados.data.alumnos.map((a: any) => [a.alumno_id, a.calificacion]),
+    );
+    expect(por_alumno).toEqual({ a1: 5, a2: 10 });
+    expect(resultados.data.preguntas[0].distribucion).toEqual({ A: 1, B: 1 });
+
+    const rechazo = await call("PUT", `/examenes/${examen.data.id}/respuestas/a1`, {
+      respuestas: [{ pregunta_id: "p2", foto: "javascript:alert(1)" }],
+    });
+    expect(rechazo.status).toBe(400);
   });
 });

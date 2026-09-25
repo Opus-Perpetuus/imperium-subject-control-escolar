@@ -13,6 +13,8 @@ import { ciclos_escolares_module } from "./modules/ciclos-escolares/ciclos-escol
 import { materias_module } from "./modules/materias/materias.routes.ts";
 import { tipos_incidencia_module } from "./modules/tipos-incidencia/tipos-incidencia.routes.ts";
 import { enlaces_compartidos_module } from "./modules/enlaces-compartidos/enlaces-compartidos.routes.ts";
+import { periodos_examen_module } from "./modules/periodos-examen/periodos-examen.routes.ts";
+import { examenes_module } from "./modules/examenes/examenes.routes.ts";
 import { seed_demo } from "./seed.ts";
 
 export const SUBJECT = define_subject({
@@ -43,6 +45,8 @@ export const SUBJECT = define_subject({
     materias_module,
     tipos_incidencia_module,
     enlaces_compartidos_module,
+    periodos_examen_module,
+    examenes_module,
   ],
   seed: seed_demo,
 });
