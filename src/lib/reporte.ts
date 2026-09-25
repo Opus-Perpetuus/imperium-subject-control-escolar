@@ -237,6 +237,14 @@ function etiqueta_incidencia(i: IncidenciaReporte): string {
   return [i.tipo, SEVERIDAD[i.severidad], CATEGORIA[i.categoria]].filter(Boolean).join(" · ");
 }
 
+/**
+ * Texto del docente dentro de un bloque markdown: se escapan los signos de
+ * markdown y HTML para que se lea tal cual lo escribió.
+ */
+function texto_literal(texto: string): string {
+  return texto.replace(/[\\`*_{}\[\]()#+\-!|<>~]/g, (c) => `\\${c}`);
+}
+
 function node(component: string, props: Record<string, unknown> = {}, children?: NoxUiNode[]): NoxUiNode {
   return children ? { component, props, children } : { component, props };
 }
@@ -256,9 +264,9 @@ export function descriptor_reporte(r: Reporte): NoxUiNode {
     r.desde || r.hasta
       ? `${fecha_legible(r.desde) || "inicio"} al ${fecha_legible(r.hasta) || "hoy"}`
       : "";
+  // Sin título: el marco del sitio público ya pone el de la página.
   hijos.push(
     node("nox.detail", {
-      title: r.tipo === "incidencia" ? "Aviso de incidencia" : r.titulo || "Reporte escolar",
       items: [
         r.escuela && { label: "Escuela", value: r.escuela },
         r.grupo && { label: "Grupo", value: r.grupo },
@@ -278,10 +286,16 @@ export function descriptor_reporte(r: Reporte): NoxUiNode {
         items: [
           { label: "Fecha", value: [fecha_legible(inc.fecha), inc.hora].filter(Boolean).join(" ") },
           { label: "Tipo", value: etiqueta_incidencia(inc), emphasis: true },
-          { label: "Descripción", value: inc.description || "Sin descripción" },
         ],
       }),
     );
+    if (inc.description) {
+      hijos.push(
+        node("nox.card", { title: "Qué pasó" }, [
+          node("nox.markdown-view", { content: texto_literal(inc.description) }),
+        ]),
+      );
+    }
   } else {
     const total_inc = r.alumnos.reduce((n, a) => n + a.incidencias.length, 0);
     const total_faltas = r.alumnos.reduce((n, a) => n + (a.asistencia?.ausentes ?? 0), 0);
