@@ -2,30 +2,58 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
   MemoryKirletDataClient,
   create_kirlet_test_context,
+  sign_kirlet_identity,
   type DomainRow,
 } from "@opus-perpetuus/imperium-core-kit";
 import { SUBJECT } from "./subject.ts";
 import { seed_demo } from "./seed.ts";
 import { calificar, escala_5_10, normalizar_preguntas } from "./lib/calificacion.ts";
-import { ciclo_para_fecha, ordenar_alumnos } from "./lib/escolar.ts";
+import { ciclo_para_fecha, dividir_rango, nombres_de_lista, ordenar_alumnos } from "./lib/escolar.ts";
 
 const TS = "2026-09-01T00:00:00.000Z";
+const SECRETO = "secreto-de-prueba";
 
 type Server = ReturnType<typeof create_kirlet_test_context>;
 
 let data: MemoryKirletDataClient;
 let server: Server;
 
-async function call(method: string, path: string, body?: unknown) {
+async function call(method: string, path: string, body?: unknown, identidad: Record<string, string> = {}) {
   const res = await server.fetch(
     new Request(`http://t${path}`, {
       method,
-      headers: body === undefined ? {} : { "content-type": "application/json" },
+      headers: { ...identidad, ...(body === undefined ? {} : { "content-type": "application/json" }) },
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
   );
   const json = (await res.json()) as Record<string, unknown>;
   return { status: res.status, json, data: json.data as any };
+}
+
+/**
+ * Petición firmada como un usuario concreto (sin firma, el servidor usa un
+ * admin sintético). Con `recursos`, no es admin y solo tiene esos grants, como
+ * los arma el núcleo a partir de los menús que ve.
+ */
+function como(user_id: string, recursos?: string[]) {
+  const grants = (recursos ?? []).map((r) => ({
+    resource: `kirlet.control-escolar.${r}`,
+    c: true,
+    r: true,
+    u: true,
+    d: true,
+  }));
+  const identidad = sign_kirlet_identity(
+    {
+      user_id,
+      email: `${user_id}@escuela.test`,
+      is_admin: !recursos,
+      kirlet_id: "subject-control-escolar",
+      grants,
+    },
+    SECRETO,
+  );
+  return (method: string, path: string, body?: unknown) => call(method, path, body, identidad);
 }
 
 async function insert(table: string, row: DomainRow) {
@@ -59,7 +87,7 @@ async function escenario() {
 
 beforeEach(async () => {
   data = new MemoryKirletDataClient(SUBJECT.schema());
-  server = create_kirlet_test_context(SUBJECT, { data });
+  server = create_kirlet_test_context(SUBJECT, { data, gateway_secret: SECRETO });
   await escenario();
 });
 
@@ -411,5 +439,173 @@ describe("exámenes", () => {
       respuestas: [{ pregunta_id: "p2", foto: "javascript:alert(1)" }],
     });
     expect(rechazo.status).toBe(400);
+  });
+});
+
+describe("organización del ciclo", () => {
+  const maestra = () => como("u-maestra");
+  const otro = () => como("u-otro");
+
+  test("dividir un rango en periodos casi iguales", () => {
+    const tramos = dividir_rango("2026-08-24", "2027-07-16", 5);
+    expect(tramos.length).toBe(5);
+    expect(tramos[0]!.inicio).toBe("2026-08-24");
+    expect(tramos[4]!.fin).toBe("2027-07-16");
+    for (let i = 1; i < tramos.length; i++) {
+      const fin_anterior = Date.parse(`${tramos[i - 1]!.fin}T00:00:00Z`);
+      expect(Date.parse(`${tramos[i]!.inicio}T00:00:00Z`) - fin_anterior).toBe(86_400_000);
+    }
+    expect(dividir_rango("2026-01-01", "2026-01-02", 3)).toEqual([]);
+  });
+
+  test("lista pegada: sin numeración ni renglones vacíos", () => {
+    expect(nombres_de_lista("1. Pérez Ana\n\n2) López  Beto\n3 - Cruz Eva\n\tDíaz Leo ")).toEqual([
+      "Pérez Ana",
+      "López Beto",
+      "Cruz Eva",
+      "Díaz Leo",
+    ]);
+  });
+
+  test("sin asignaciones: todos los grupos, ninguno propio", async () => {
+    const r = await maestra()("GET", "/grupo/contexto?fecha=2026-09-25");
+    expect(r.data.grupos.map((g: any) => [g.id, g.mio])).toEqual([["g1", false]]);
+    expect(r.data.ciclo.vigente).toBe(true);
+    expect(r.data.periodos).toEqual([]);
+    expect(r.data.periodo_id).toBeNull();
+  });
+
+  test("la docente se asigna su grupo; los demás lo ven con su nombre", async () => {
+    await insert("grupo", { id: "g1b", name: "1B", ciclo_escolar_id: "cic1", escuela_id: "esc1" });
+    const alta = await maestra()("POST", "/grupo/g1b/asignarme", {});
+    expect(alta.status).toBe(201);
+    // Asignarse dos veces no duplica.
+    expect((await maestra()("POST", "/grupo/g1b/asignarme", {})).data.id).toBe(alta.data.id);
+
+    const suyo = await maestra()("GET", "/grupo/contexto?fecha=2026-09-25");
+    expect(suyo.data.grupos[0]).toMatchObject({ id: "g1b", mio: true, materias_mias: [] });
+    expect(suyo.data.grupos[0].docentes).toEqual(["u-maestra@escuela.test"]);
+    expect(suyo.data.grupos[1]).toMatchObject({ id: "g1", mio: false });
+
+    const ajeno = await otro()("GET", "/grupo/contexto?fecha=2026-09-25");
+    expect(ajeno.data.grupos.find((g: any) => g.id === "g1b")).toMatchObject({
+      mio: false,
+      docentes: ["u-maestra@escuela.test"],
+    });
+
+    expect((await maestra()("POST", "/grupo/g1b/dejar", {})).data.retiradas).toBe(1);
+    const despues = await maestra()("GET", "/grupo/contexto?fecha=2026-09-25");
+    expect(despues.data.grupos.every((g: any) => !g.mio)).toBe(true);
+  });
+
+  test("una maestra sin admin: con el menú Grupos organiza su grupo; los periodos son de admin", async () => {
+    const maestra_real = como("u-maestra", ["grupo", "registro-asistencias"]);
+    expect((await maestra_real("GET", "/grupo/contexto?fecha=2026-09-25")).status).toBe(200);
+    expect((await maestra_real("POST", "/grupo/g1/asignarme", {})).status).toBe(201);
+    expect((await maestra_real("POST", "/grupo/g1/alumnos/lote", { nombres: "Diego" })).status).toBe(201);
+    expect((await maestra_real("POST", "/registro-asistencias/pase", { grupo_id: "g1" })).status).toBe(201);
+    const periodos = await maestra_real("POST", "/periodos-examen/generar", { ciclo_escolar_id: "cic1", cantidad: 5 });
+    expect(periodos.status).toBe(403);
+
+    const sin_grupos = como("u-otra", ["registro-asistencias"]);
+    expect((await sin_grupos("POST", "/grupo/g1/asignarme", {})).status).toBe(403);
+  });
+
+  test("docente de una materia en varios grupos", async () => {
+    await insert("materias", { id: "mat-calc", name: "Cálculo" });
+    await insert("grupo", { id: "g1b", name: "1B", ciclo_escolar_id: "cic1", escuela_id: "esc1" });
+    await otro()("POST", "/grupo/g1/asignarme", { materia_id: "mat-calc" });
+    await otro()("POST", "/grupo/g1b/asignarme", { materia_id: "mat-calc" });
+    const r = await otro()("GET", "/grupo/contexto?fecha=2026-09-25");
+    expect(r.data.grupos.map((g: any) => [g.id, g.mio, g.materias_mias])).toEqual([
+      ["g1", true, ["mat-calc"]],
+      ["g1b", true, ["mat-calc"]],
+    ]);
+    expect((await otro()("POST", "/grupo/g1/asignarme", { materia_id: "no-existe" })).status).toBe(404);
+  });
+
+  test("el grupo del ciclo siguiente se prepara antes de que empiece", async () => {
+    await insert("ciclos_escolares", {
+      id: "cic2",
+      name: "2027-2028",
+      fecha_inicio: "2027-08-23",
+      fecha_fin: "2028-07-14",
+    });
+    await insert("grupo", { id: "g2", name: "2A", ciclo_escolar_id: "cic2", escuela_id: "esc1" });
+    const r = await call("GET", "/grupo/contexto?fecha=2026-09-25&ciclo_id=cic2");
+    expect(r.data.ciclo).toMatchObject({ id: "cic2", vigente: false });
+    expect(r.data.grupos.map((g: any) => g.id)).toEqual(["g2"]);
+    expect(r.data.ciclos.map((c: any) => c.id)).toEqual(["cic2", "cic1", "cic-pasado"]);
+  });
+
+  test("alta de alumnos por lista pegada, sin repetir", async () => {
+    const r = await call("POST", "/grupo/g1/alumnos/lote", { nombres: "1. Diego\n\n2) ana\nEva\nDiego" });
+    expect(r.status).toBe(201);
+    expect(r.data.creados.map((a: any) => [a.numero_lista, a.name])).toEqual([
+      [4, "Diego"],
+      [5, "Eva"],
+    ]);
+    expect(r.data.repetidos).toEqual(["ana", "Diego"]);
+    expect(r.data.alumnos.length).toBe(5);
+    expect((await call("POST", "/grupo/g1/alumnos/lote", { nombres: "\n \n" })).status).toBe(400);
+  });
+
+  test("numerar por orden alfabético", async () => {
+    await call("POST", "/grupo/g1/alumnos/lote", { nombres: ["Abel"] });
+    const r = await call("POST", "/grupo/g1/alumnos/numerar", {});
+    expect(r.data.map((a: any) => [a.numero_lista, a.name])).toEqual([
+      [1, "Abel"],
+      [2, "Ana"],
+      [3, "Beto"],
+      [4, "Carla"],
+    ]);
+  });
+
+  test("pasar alumnos al grupo del ciclo siguiente sin perder el historial", async () => {
+    const pase = await call("POST", "/registro-asistencias/pase", { grupo_id: "g1", fecha: "2026-09-25" });
+    await insert("ciclos_escolares", { id: "cic2", name: "2027-2028", fecha_inicio: "2027-08-23", fecha_fin: "2028-07-14" });
+    await insert("grupo", { id: "g2", name: "2A", ciclo_escolar_id: "cic2", escuela_id: "esc1" });
+
+    const r = await call("POST", "/grupo/g1/alumnos/mover", { destino_grupo_id: "g2" });
+    expect(r.data.movidos).toBe(3);
+    expect((await call("GET", "/grupo/g1/alumnos")).data).toEqual([]);
+    expect((await call("GET", "/grupo/g2/alumnos")).data.map((a: any) => [a.numero_lista, a.name])).toEqual([
+      [1, "Ana"],
+      [2, "Beto"],
+      [3, "Carla"],
+    ]);
+    // El pase viejo sigue con su grupo y sus nombres.
+    const viejo = await call("GET", `/registro-asistencias/pase/${pase.data.registro.id}`);
+    expect(viejo.data.grupo.name).toBe("1A");
+    expect(viejo.data.renglones.length).toBe(3);
+
+    // Al destino con alumnos, los que llegan siguen su numeración.
+    await insert("alumnos", { id: "a-nuevo", name: "Zoe", grupo_id: "g-viejo", numero_lista: 1 });
+    await call("POST", "/grupo/g-viejo/alumnos/mover", { destino_grupo_id: "g2", alumno_ids: ["a-nuevo"] });
+    const destino = (await call("GET", "/grupo/g2/alumnos")).data;
+    expect(destino.at(-1)).toMatchObject({ name: "Zoe", numero_lista: 4 });
+    // El alumno "a-otro" no se pidió y se queda.
+    expect((await call("GET", "/grupo/g-viejo/alumnos")).data.map((a: any) => a.id)).toEqual(["a-otro"]);
+
+    expect((await call("POST", "/grupo/g2/alumnos/mover", { destino_grupo_id: "g2" })).status).toBe(400);
+  });
+
+  test("dividir el ciclo en periodos y saber el vigente", async () => {
+    const r = await call("POST", "/periodos-examen/generar", {
+      ciclo_escolar_id: "cic1",
+      cantidad: 5,
+      nombre: "Bimestre",
+    });
+    expect(r.status).toBe(201);
+    expect(r.data.map((p: any) => p.name)).toEqual(["Bimestre 1", "Bimestre 2", "Bimestre 3", "Bimestre 4", "Bimestre 5"]);
+    expect(r.data[0].fecha_inicio).toBe("2026-08-24");
+    expect(r.data[4].fecha_fin).toBe("2027-07-16");
+
+    const otra_vez = await call("POST", "/periodos-examen/generar", { ciclo_escolar_id: "cic1", cantidad: 3 });
+    expect(otra_vez.status).toBe(409);
+
+    const ctx = await call("GET", "/grupo/contexto?fecha=2026-11-20");
+    expect(ctx.data.periodos.length).toBe(5);
+    expect(ctx.data.periodo_id).toBe(ctx.data.periodos[1].id);
   });
 });

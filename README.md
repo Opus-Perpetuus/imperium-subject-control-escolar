@@ -17,9 +17,24 @@ exámenes.
 Las pinta el lanzador Angular (monorepo, `frontend/src/app/components/control-escolar/aula/` y
 `examenes/`); la lógica vive aquí, en rutas de la app (`/api/m/subject-control-escolar/…`).
 
-- **Contexto** — `GET /grupo/contexto?fecha=AAAA-MM-DD[&escuela_id=]`: escuelas, ciclo vigente
-  en la fecha del dispositivo (entre inicio y fin) y los grupos de ese ciclo. Con una sola
-  escuela no se pregunta.
+- **Contexto** — `GET /grupo/contexto?fecha=AAAA-MM-DD[&escuela_id=][&ciclo_id=]`: escuelas,
+  ciclo vigente en la fecha del dispositivo (o el pedido, para preparar el siguiente o ver uno
+  pasado), sus periodos y el que está en curso, y los grupos de ese ciclo. Cada grupo dice si el
+  usuario lo tiene asignado (`mio`, `materias_mias`) y quiénes lo atienden (`docentes`); los
+  propios van primero. Con una sola escuela no se pregunta.
+- **Mi grupo** — cómo se organiza un ciclo sin suponer un tipo de escuela:
+  - `POST /grupo/:id/asignarme` / `…/dejar` (`materia_id` opcional): el docente se asigna el
+    grupo como titular (sin materia; primaria: una maestra por grupo que cambia cada ciclo) o
+    como docente de una materia (secundaria, universidad: un profesor en varios grupos). Tabla
+    `asignaciones_docente` (usuario, grupo, materia); el ciclo sale del grupo. Nadie queda fuera
+    por no estar asignado: los grupos ajenos se marcan, no se esconden.
+  - `POST /grupo/:id/alumnos/lote` (`nombres`: texto pegado, uno por renglón; quita la
+    numeración y no repite a quien ya está), `…/alumnos/numerar` (1…N alfabético) y
+    `…/alumnos/mover` (`destino_grupo_id`: pasar el grupo al del ciclo siguiente; lo capturado
+    antes se queda con el grupo viejo).
+  - `POST /periodos-examen/generar` (`ciclo_escolar_id`, `cantidad`, `nombre`): divide el ciclo
+    en periodos seguidos de duración casi igual ("Bimestre 1…5", "Trimestre 1…3"); la tabla
+    `periodos_examen` guarda los periodos del ciclo aunque conserve su nombre.
 - **Pase de lista** — `POST /registro-asistencias/pase` crea un registro con un renglón por
   alumno en orden de número de lista; `…/pase/:id/marcar` (presente/ausente/pendiente),
   `…/pase/:id/cerrar`, `GET /registro-asistencias/pases?grupo_id&fecha`. Se puede pasar lista

@@ -14,18 +14,18 @@ export const periodos_examen_pages: KirletPageDecl[] = [
       build_feature_shell_page({
         id: "control-escolar.periodos-examen",
         owner: "subject-control-escolar",
-        title: "Periodos de exámenes",
+        title: "Periodos del ciclo",
         props: {
           basePath: "periodos-examen",
           idKey: "id",
           nameKey: "name",
           view: {
-            title: "Periodos de exámenes",
-            subtitle: "Bimestres, trimestres o parciales del ciclo escolar",
-            pluralLabel: "periodos de exámenes",
-            singularLabel: "periodo de exámenes",
-            emptyTitle: "Sin periodos de exámenes",
-            emptyDescription: "Crea el primer periodo para agrupar los exámenes del ciclo",
+            title: "Periodos del ciclo",
+            subtitle: "Bimestres, trimestres, semestres o parciales del ciclo escolar",
+            pluralLabel: "periodos del ciclo",
+            singularLabel: "periodo del ciclo",
+            emptyTitle: "Sin periodos",
+            emptyDescription: "Divide el ciclo en periodos desde Mi grupo, o crea el primero aquí",
           },
           data: {
             list: `${API}/periodos-examen`,

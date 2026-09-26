@@ -165,7 +165,7 @@ export const registro_incidencias_module = define_module({
     },
     {
       id: "control-escolar.periodos-examen",
-      label: "Periodos de exámenes",
+      label: "Periodos del ciclo",
       order: 10,
       pageId: "control-escolar.periodos-examen",
       path: "periodos-examen",

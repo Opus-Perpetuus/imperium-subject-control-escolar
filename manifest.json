@@ -120,11 +120,11 @@
     },
     {
       "id": "subject.control-escolar.periodos-examen.read",
-      "label": "Ver Periodos de exámenes"
+      "label": "Ver Periodos del ciclo"
     },
     {
       "id": "subject.control-escolar.periodos-examen.write",
-      "label": "Editar Periodos de exámenes"
+      "label": "Editar Periodos del ciclo"
     },
     {
       "id": "subject.control-escolar.examenes.read",
@@ -251,7 +251,7 @@
         },
         {
           "id": "control-escolar.periodos-examen",
-          "label": "Periodos de exámenes",
+          "label": "Periodos del ciclo",
           "pageId": "control-escolar.periodos-examen",
           "order": 10,
           "path": "periodos-examen",

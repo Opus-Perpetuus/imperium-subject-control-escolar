@@ -136,3 +136,55 @@ export async function nombres_por_id(
   });
   return new Map(rows.map((r) => [String(r.id), texto(r.name)]));
 }
+
+/** Quien hace la petición; asignarse un grupo exige saber quién es. */
+export function usuario(ctx: KirletCtx): { user_id: string; label: string } {
+  const user_id = texto(ctx.identity?.user_id);
+  if (!user_id) falla(401, "Inicia sesión para asignarte un grupo");
+  return { user_id, label: texto(ctx.actor) || user_id };
+}
+
+/** Periodo (bimestre, trimestre…) que contiene `fecha`; ninguno fuera de ellos. */
+export function periodo_para_fecha(periodos: DomainRow[], fecha: string): DomainRow | null {
+  return (
+    periodos.find((p) => {
+      const inicio = solo_fecha(p.fecha_inicio);
+      const fin = solo_fecha(p.fecha_fin);
+      return !!inicio && !!fin && inicio <= fecha && fecha <= fin;
+    }) ?? null
+  );
+}
+
+const DIA_MS = 86_400_000;
+
+/**
+ * Parte `[inicio, fin]` (ambos inclusive) en `n` tramos seguidos de días casi
+ * iguales; los días que sobran van a los primeros tramos.
+ */
+export function dividir_rango(inicio: string, fin: string, n: number): { inicio: string; fin: string }[] {
+  const desde = Date.parse(`${inicio}T00:00:00Z`);
+  const total = Math.round((Date.parse(`${fin}T00:00:00Z`) - desde) / DIA_MS) + 1;
+  if (!Number.isFinite(total) || total < n || n < 1) return [];
+  const dia = (d: number) => new Date(desde + d * DIA_MS).toISOString().slice(0, 10);
+  const base = Math.floor(total / n);
+  const sobran = total % n;
+  const tramos: { inicio: string; fin: string }[] = [];
+  let d = 0;
+  for (let i = 0; i < n; i++) {
+    const largo = base + (i < sobran ? 1 : 0);
+    tramos.push({ inicio: dia(d), fin: dia(d + largo - 1) });
+    d += largo;
+  }
+  return tramos;
+}
+
+/**
+ * Renglones pegados de una lista (Excel, Word, WhatsApp) → nombres. Quita la
+ * numeración del inicio ("1.", "2)", "3 -") y los renglones vacíos.
+ */
+export function nombres_de_lista(value: unknown): string[] {
+  const renglones = Array.isArray(value) ? value.map(texto) : texto(value).split(/\r?\n/);
+  return renglones
+    .map((r) => r.replace(/^\s*\d+\s*[.)\-–:]?\s+/, "").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
