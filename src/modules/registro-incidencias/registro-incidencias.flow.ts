@@ -6,6 +6,7 @@ import {
   fecha_cliente,
   grupo_activo,
   hora_cliente,
+  nombres_por_id,
   texto,
 } from "../../lib/escolar.ts";
 
@@ -78,11 +79,8 @@ export const registro_incidencias_flow = define_routes({
       where: { grupo_id, fecha, is_active: true },
       limit: LIMITE_FILAS,
     });
-    const alumnos = await ctx.data.findMany("alumnos", {
-      where: { grupo_id },
-      limit: LIMITE_FILAS,
-    });
-    const nombre = new Map(alumnos.map((a) => [String(a.id), texto(a.name)]));
+    // Por id y no por grupo: un alumno que ya se pasó a otro grupo conserva su nombre aquí.
+    const nombre = await nombres_por_id(ctx, "alumnos", rows.map((r) => r.alumno_id));
     const data = rows
       .map((r) => ({
         id: r.id,
