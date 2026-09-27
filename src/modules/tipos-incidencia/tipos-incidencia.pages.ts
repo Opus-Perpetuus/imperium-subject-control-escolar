@@ -52,6 +52,7 @@ export const tipos_incidencia_pages: KirletPageDecl[] = [
                 name: "categoria",
                 component: "input-radio-buttons",
                 label: "Categoría",
+                required: true,
                 options: [
                   { value: "negativa", label: "Negativa" },
                   { value: "positiva", label: "Positiva" },
@@ -62,6 +63,7 @@ export const tipos_incidencia_pages: KirletPageDecl[] = [
                 name: "severidad",
                 component: "input-radio-buttons",
                 label: "Severidad",
+                required: true,
                 options: [
                   { value: "leve", label: "Leve" },
                   { value: "grave", label: "Grave" },

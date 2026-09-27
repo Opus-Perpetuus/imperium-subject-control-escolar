@@ -5,11 +5,13 @@ import { tipos_incidencia_tables } from "./tipos-incidencia.tables.ts";
 export const CATEGORIAS_INCIDENCIA = ["negativa", "positiva", "neutral"] as const;
 export const SEVERIDADES_INCIDENCIA = ["leve", "grave", "muy_grave"] as const;
 
+/** Obligatorio y dentro de las opciones: un tipo sin categoría no se pinta en la captura. */
 function uno_de(opciones: readonly string[], etiqueta: string) {
-  return (value: unknown) =>
-    value == null || value === "" || opciones.includes(String(value))
-      ? null
-      : `${etiqueta} debe ser ${opciones.join(", ")}`;
+  return (value: unknown) => {
+    const v = String(value ?? "");
+    if (!v) return `Elige ${etiqueta.toLowerCase()}`;
+    return opciones.includes(v) ? null : `${etiqueta} debe ser ${opciones.join(", ")}`;
+  };
 }
 
 export const tipos_incidencia_module = define_module({
@@ -40,11 +42,13 @@ export const tipos_incidencia_module = define_module({
       payload: { type: "json" },
       categoria: {
         type: "string",
+        required: true,
         search: true,
         validate: uno_de(CATEGORIAS_INCIDENCIA, "La categoría"),
       },
       severidad: {
         type: "string",
+        required: true,
         search: true,
         validate: uno_de(SEVERIDADES_INCIDENCIA, "La severidad"),
       },
