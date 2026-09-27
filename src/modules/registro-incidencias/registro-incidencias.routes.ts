@@ -48,6 +48,9 @@ export const registro_incidencias_module = define_module({
         severidad: { type: "string", search: true },
         fecha: { type: "string", search: true },
         hora: { type: "string" },
+        // Solo la escribe la familia desde el enlace público, una vez.
+        firma: { type: "string", create: false, update: false },
+        firmado_at: { type: "string", create: false, update: false },
       },
       options_map: { value: "id", label: "name" },
     }),

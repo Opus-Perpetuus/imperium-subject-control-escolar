@@ -274,6 +274,17 @@ describe("incidencias", () => {
   });
 });
 
+describe("tipos de incidencia", () => {
+  test("categoría y severidad son obligatorias", async () => {
+    const sin = await call("POST", "/tipos-incidencia", { name: "Tipo sin datos", categoria: "", severidad: "" });
+    expect(sin.status).toBe(400);
+    const ok = await call("POST", "/tipos-incidencia", { name: "Tipo completo", categoria: "negativa", severidad: "leve" });
+    expect(ok.status).toBe(201);
+    const vaciar = await call("PATCH", `/tipos-incidencia/${ok.data.id}`, { severidad: "" });
+    expect(vaciar.status).toBe(400);
+  });
+});
+
 describe("enlaces compartidos y página pública", () => {
   async function pagina(token: string) {
     const res = await server.fetch(
@@ -319,6 +330,88 @@ describe("enlaces compartidos y página pública", () => {
     expect(todo).not.toContain("Beto");
     const guardado = await data.findOne("enlaces_compartidos", { id: e1.data.id });
     expect(guardado?.vistas).toBe(1);
+  });
+
+  describe("firma de enterado", () => {
+    const FIRMA = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+
+    async function enlace() {
+      const ctx = await call("GET", "/grupo/contexto?fecha=2026-09-25");
+      const inc = await call("POST", "/registro-incidencias/rapida", {
+        grupo_id: "g1",
+        alumno_id: "a1",
+        tipo_incidencia_id: ctx.data.tipos_incidencia[0].id,
+        description: "Sin tarea",
+        fecha: "2026-09-25",
+      });
+      const e = await call("POST", `/enlaces-compartidos/incidencia/${inc.data.id}`, {});
+      return { incidencia_id: inc.data.id as string, enlace: e.data };
+    }
+
+    function nodos(node: any, component: string): any[] {
+      return [
+        ...(node.component === component ? [node] : []),
+        ...(node.children ?? []).flatMap((c: any) => nodos(c, component)),
+      ];
+    }
+
+    test("apagada por defecto: sin formulario y el envío se rechaza", async () => {
+      const { enlace: e } = await enlace();
+      expect(e.solicitar_firma).toBe(false);
+      expect(nodos((await pagina(e.token)).page, "nox.form")).toHaveLength(0);
+      const r = await call("POST", "/enlaces-compartidos/firmar", { t: e.token, firma: FIRMA });
+      expect(r.status).toBe(403);
+    });
+
+    test("se firma una sola vez y luego ya no se ofrece ni se acepta", async () => {
+      const { incidencia_id, enlace: e } = await enlace();
+      const on = await call("POST", `/enlaces-compartidos/${e.id}/solicitar-firma`, { solicitar_firma: true });
+      expect(on.data.solicitar_firma).toBe(true);
+      expect(on.data.firmado_at).toBeNull();
+
+      const antes = (await pagina(e.token)).page;
+      const [form] = nodos(antes, "nox.form");
+      expect(form.props.action).toBe("api://enlaces-compartidos/firmar");
+      expect(nodos(form, "nox.input-signature")).toHaveLength(1);
+      expect(nodos(form, "nox.input-hidden")[0].props.value).toBe(e.token);
+
+      expect((await call("POST", "/enlaces-compartidos/firmar", { t: e.token, firma: "" })).status).toBe(400);
+      expect((await call("POST", "/enlaces-compartidos/firmar", { t: e.token, firma: "data:text/html;base64,PHA+" })).status).toBe(400);
+
+      const [a, b] = await Promise.all([
+        call("POST", "/enlaces-compartidos/firmar", { t: e.token, firma: FIRMA }),
+        call("POST", "/enlaces-compartidos/firmar", { t: e.token, firma: FIRMA }),
+      ]);
+      expect([a.status, b.status].sort()).toEqual([200, 409]);
+      const otra = await call("POST", "/enlaces-compartidos/firmar", { t: e.token, firma: FIRMA.replace("Ggg", "Ggh") });
+      expect(otra.status).toBe(409);
+
+      const guardada = await data.findOne("registro_incidencias", { id: incidencia_id });
+      expect(guardada?.firma).toBe(FIRMA);
+      expect(String(guardada?.firmado_at)).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+
+      const despues = (await pagina(e.token)).page;
+      expect(nodos(despues, "nox.form")).toHaveLength(0);
+      expect(nodos(despues, "nox.image-viewer")[0].props.src).toBe(FIRMA);
+
+      const off = await call("POST", `/enlaces-compartidos/${e.id}/solicitar-firma`, { solicitar_firma: false });
+      expect(off.status).toBe(409);
+      const patch = await call("PATCH", `/registro-incidencias/${incidencia_id}`, { firma: FIRMA });
+      expect(patch.status).toBe(400);
+    });
+
+    test("un enlace retirado ya no acepta firma", async () => {
+      const { enlace: e } = await enlace();
+      await call("POST", `/enlaces-compartidos/${e.id}/solicitar-firma`, { solicitar_firma: true });
+      await call("POST", `/enlaces-compartidos/${e.id}/retirar`);
+      expect((await call("POST", "/enlaces-compartidos/firmar", { t: e.token, firma: FIRMA })).status).toBe(404);
+    });
+
+    test("firmar es una ruta pública del manifiesto", () => {
+      const m = SUBJECT.manifest() as any;
+      const rutas = JSON.stringify(m.public ?? {});
+      expect(rutas).toContain("/enlaces-compartidos/firmar");
+    });
   });
 
   test("reporte para dirección con faltas, porcentaje e incidencias", async () => {

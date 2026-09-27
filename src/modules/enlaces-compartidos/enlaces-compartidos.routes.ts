@@ -37,6 +37,25 @@ function salida(enlace: DomainRow) {
   return { ...enlace, ruta: `${RUTA_PUBLICA}?t=${enlace.token}` };
 }
 
+/** El enlace de una incidencia dice si la familia ya firmó. */
+async function salida_incidencia(ctx: KirletCtx, enlace: DomainRow) {
+  const incidencia = await ctx.data.findOne("registro_incidencias", { id: texto(enlace.incidencia_id) });
+  return { ...salida(enlace), firmado_at: incidencia?.firmado_at ?? null };
+}
+
+/** Enlace vigente por token; `null` si no existe, caducó o se retiró. */
+export function enlace_vigente(enlace: DomainRow | null): enlace is DomainRow {
+  return (
+    !!enlace &&
+    enlace.is_active !== false &&
+    (!enlace.expira_at || texto(enlace.expira_at) > now_iso())
+  );
+}
+
+/** Firma dibujada en el enlace: PNG o JPEG en data URL, de tamaño razonable. */
+const FIRMA = /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/;
+const FIRMA_MAXIMA = 2 * 1024 * 1024;
+
 async function crear(ctx: KirletCtx, row: DomainRow): Promise<Response> {
   const ts = now_iso();
   const created = await ctx.data.insert("enlaces_compartidos", {
@@ -76,7 +95,7 @@ export const enlaces_compartidos_module = define_module({
         limit: LIMITE_FILAS,
       });
       const vigente = vigentes.find((e) => !e.expira_at || texto(e.expira_at) > ahora);
-      if (vigente) return { data: salida(vigente) };
+      if (vigente) return { data: await salida_incidencia(ctx, vigente) };
       const alumno = await ctx.data.findOne("alumnos", { id: texto(incidencia.alumno_id) });
       return crear(ctx, {
         name: `${texto(incidencia.tipo) || "Incidencia"} · ${texto(alumno?.name)}`,
@@ -85,7 +104,56 @@ export const enlaces_compartidos_module = define_module({
         alumno_ids: [texto(incidencia.alumno_id)],
         grupo_id: incidencia.grupo_id ?? null,
         expira_at: expira_en(body.dias),
+        solicitar_firma: false,
       });
+    },
+
+    /**
+     * Pedir (o dejar de pedir) la firma de la familia en el enlace de una
+     * incidencia. Apagada por defecto; ya firmada no se puede apagar.
+     */
+    "POST /enlaces-compartidos/:id/solicitar-firma": async (ctx) => {
+      const body = await ctx.body<{ solicitar_firma?: boolean }>();
+      const enlace = await ctx.data.findOne("enlaces_compartidos", { id: ctx.params.id! });
+      if (!enlace || enlace.tipo !== "incidencia") falla(404, "El enlace de la incidencia no existe");
+      const solicitar_firma = body.solicitar_firma === true;
+      const incidencia = await ctx.data.findOne("registro_incidencias", { id: texto(enlace.incidencia_id) });
+      if (!solicitar_firma && incidencia?.firma) falla(409, "La incidencia ya está firmada");
+      const updated = await ctx.data.update(
+        "enlaces_compartidos",
+        { id: String(enlace.id) },
+        { solicitar_firma, updated_at: now_iso() },
+      );
+      return { data: await salida_incidencia(ctx, updated ?? enlace) };
+    },
+
+    /**
+     * La familia firma desde el enlace público. Una sola vez: la escritura
+     * exige que la incidencia no tenga firma, así que dos envíos a la par no
+     * se pisan y lo firmado ya no cambia.
+     */
+    "POST /enlaces-compartidos/firmar": {
+      public_access: "anonymous",
+      handler: async (ctx: KirletCtx) => {
+        const body = await ctx.body<{ t?: string; firma?: unknown }>();
+        const token = texto(body.t);
+        const enlace = token ? await ctx.data.findOne("enlaces_compartidos", { token }) : null;
+        if (!enlace_vigente(enlace) || enlace.tipo !== "incidencia") {
+          falla(404, "Este enlace no existe, ya caducó o la escuela lo retiró");
+        }
+        if (enlace.solicitar_firma !== true) falla(403, "Este aviso no pide firma");
+        const firma = texto(body.firma);
+        if (!firma) falla(400, "Dibuja tu firma antes de enviarla");
+        if (!FIRMA.test(firma) || firma.length > FIRMA_MAXIMA) falla(400, "La firma no es una imagen válida");
+        const firmado_at = now_iso();
+        const firmada = await ctx.data.update(
+          "registro_incidencias",
+          { id: texto(enlace.incidencia_id), firma: { isNull: true } },
+          { firma, firmado_at, updated_at: firmado_at },
+        );
+        if (!firmada) falla(409, "Este aviso ya está firmado");
+        return { data: { firmado_at }, message: "Firma enviada. Gracias." };
+      },
     },
 
     /** Reporte de incidencias y faltas de uno o más alumnos de un grupo. */
@@ -138,9 +206,14 @@ export const enlaces_compartidos_module = define_module({
         where: grupo_id ? { grupo_id } : {},
         limit: LIMITE_FILAS,
       });
+      const ids = [...new Set(rows.map((r) => texto(r.incidencia_id)).filter(Boolean))];
+      const incidencias = ids.length
+        ? await ctx.data.findMany("registro_incidencias", { where: { id: { in: ids } }, limit: LIMITE_FILAS })
+        : [];
+      const firmado = new Map(incidencias.map((i) => [texto(i.id), i.firmado_at ?? null]));
       const data = rows
         .sort((a, b) => texto(b.created_at).localeCompare(texto(a.created_at)))
-        .map(salida);
+        .map((r) => (r.tipo === "incidencia" ? { ...salida(r), firmado_at: firmado.get(texto(r.incidencia_id)) ?? null } : salida(r)));
       return { data, total_elementos: data.length };
     },
 

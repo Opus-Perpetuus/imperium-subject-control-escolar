@@ -46,6 +46,16 @@ export type Reporte = {
   generado: string;
   expira: string;
   alumnos: AlumnoReporte[];
+  /** Solo en el aviso de una incidencia cuyo enlace pide firma o ya la tiene. */
+  firma?: FirmaReporte;
+};
+
+export type FirmaReporte = {
+  /** Token del enlace: el formulario público lo manda para firmar. */
+  token: string;
+  /** Data URL de la firma; vacío mientras nadie firma. */
+  imagen: string;
+  firmado_at: string;
 };
 
 const SEVERIDAD: Record<string, string> = {
@@ -109,10 +119,20 @@ export async function armar_reporte(data: KirletDataClient, enlace: DomainRow): 
       data.findOne("grupo", { id: texto(incidencia.grupo_id) }),
       data.findOne("escuelas", { id: texto(incidencia.escuela_id) }),
     ]);
+    const firmada = texto(incidencia.firma);
     return {
       ...base,
       escuela: texto(escuela?.name),
       grupo: texto(grupo?.name),
+      ...(enlace.solicitar_firma === true || firmada
+        ? {
+            firma: {
+              token: texto(enlace.token),
+              imagen: firmada,
+              firmado_at: texto(incidencia.firmado_at),
+            },
+          }
+        : {}),
       alumnos: [
         {
           id: texto(incidencia.alumno_id),
@@ -258,6 +278,54 @@ export function descriptor_invalido(): NoxUiNode {
   ]);
 }
 
+/**
+ * Firma de enterado: el formulario solo sale mientras no hay firma; firmada,
+ * queda a la vista y el enlace ya no ofrece cambiarla.
+ */
+function bloque_firma(f: FirmaReporte): NoxUiNode {
+  if (f.imagen) {
+    return node("nox.card", { title: "Firma de enterado" }, [
+      node("nox.image-viewer", { src: f.imagen, alt: "Firma de enterado" }),
+      node("nox.detail", {
+        items: [{ label: "Firmado", value: fecha_hora_legible(f.firmado_at) }],
+      }),
+    ]);
+  }
+  return node("nox.card", { title: "Firma de enterado" }, [
+    node("nox.markdown-view", {
+      content: "La escuela pide que firme de enterado. Solo se puede firmar una vez.",
+    }),
+    node(
+      "nox.form",
+      {
+        method: "POST",
+        action: "api://enlaces-compartidos/firmar",
+        confirm: "¿Enviar la firma? Ya no se podrá cambiar.",
+      },
+      [
+        node("nox.input-hidden", { name: "t", value: f.token }),
+        node("nox.input-signature", { name: "firma", label: "Firma de la madre, padre o tutor", required: true }),
+        // El texto del botón va en el nodo: el formulario no lo lee de las props.
+        { ...node("nox.button", { icon: "fa-signature" }), text: "Enviar firma" } as NoxUiNode,
+      ],
+    ),
+  ]);
+}
+
+/** `AAAA-MM-DDTHH:MM…` (UTC) → `DD/MM/AAAA HH:MM` en hora de México. */
+function fecha_hora_legible(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return fecha_legible(solo_fecha(iso));
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: "America/Mexico_City",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+}
+
 export function descriptor_reporte(r: Reporte): NoxUiNode {
   const hijos: NoxUiNode[] = [];
   const periodo =
@@ -296,6 +364,7 @@ export function descriptor_reporte(r: Reporte): NoxUiNode {
         ]),
       );
     }
+    if (r.firma) hijos.push(bloque_firma(r.firma));
   } else {
     const total_inc = r.alumnos.reduce((n, a) => n + a.incidencias.length, 0);
     const total_faltas = r.alumnos.reduce((n, a) => n + (a.asistencia?.ausentes ?? 0), 0);
@@ -382,7 +451,9 @@ export function descriptor_reporte(r: Reporte): NoxUiNode {
   hijos.push(
     node("nox.alert", {
       title: "Documento confidencial",
-      description: r.expira
+      description: r.firma && !r.firma.imagen
+        ? `Enlace para la familia o la dirección de la escuela: solo se puede firmar una vez.${r.expira ? ` Vigente hasta el ${fecha_legible(r.expira)}.` : ""}`
+        : r.expira
         ? `Enlace de solo lectura para la familia o la dirección de la escuela. Vigente hasta el ${fecha_legible(r.expira)}.`
         : "Enlace de solo lectura para la familia o la dirección de la escuela.",
     }),

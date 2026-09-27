@@ -33,6 +33,8 @@ export const registro_incidencias_tables: KirletTableDecl[] = [
       { name: "severidad", type: "text" },
       { name: "fecha", type: "text" },
       { name: "hora", type: "text" },
+      { name: "firma", type: "text" },
+      { name: "firmado_at", type: "text" },
     ],
     indexes: [
       { name: "idx_registro_incidencias_name", columns: ["name"] },

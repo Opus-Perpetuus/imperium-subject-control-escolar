@@ -28,6 +28,7 @@ export const enlaces_compartidos_tables: KirletTableDecl[] = [
       { name: "expira_at", type: "text" },
       { name: "vistas", type: "real" },
       { name: "ultima_vista_at", type: "text" },
+      { name: "solicitar_firma", type: "boolean", notNull: true, default: false },
     ],
     indexes: [
       { name: "idx_enlaces_compartidos_incidencia", columns: ["incidencia_id"] },

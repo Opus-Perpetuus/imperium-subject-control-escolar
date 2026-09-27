@@ -345,6 +345,15 @@
         "segment": "compartido",
         "label": "Documento compartido"
       }
+    ],
+    "api": [
+      {
+        "pathPrefix": "/enlaces-compartidos/firmar",
+        "access": "anonymous",
+        "methods": [
+          "POST"
+        ]
+      }
     ]
   },
   "resources": {
