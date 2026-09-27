@@ -50,7 +50,7 @@ export const aulas_pages: KirletPageDecl[] = [
               { name: "name", component: "input-text", label: "Nombre", required: true },
               { name: "description", component: "input-textarea", label: "Descripción" },
               { name: "ref", component: "input-text", label: "Referencia (_ref)" },
-              { name: "escuela_id", component: "input-text", label: "escuela id" },
+              { name: "escuela_id", component: "input-datalist", label: "Escuela", optionsSource: "api://m/subject-control-escolar/escuelas?as=options&limite=1000" },
               { name: "capacidad", component: "input-number", label: "capacidad" },
             ],
           },
