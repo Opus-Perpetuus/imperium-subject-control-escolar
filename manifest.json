@@ -1,4 +1,6 @@
 {
+  "$schema": "https://schemas.opus-perpetuus.dev/imperium/kirlet-manifest/1.0.json",
+  "manifestVersion": 1,
   "id": "SUBJECT-control-escolar",
   "technicalId": "subject-control-escolar",
   "name": "Control escolar",
@@ -320,7 +322,20 @@
     {
       "id": "control-escolar.tipos-incidencia",
       "path": "tipos-incidencia",
-      "permission": "subject.control-escolar.tipos-incidencia.read"
+      "permission": "subject.control-escolar.tipos-incidencia.read",
+      "leaf": {
+        "kind": "crud",
+        "appBase": "tipos-incidencia",
+        "icon": "fa-tags",
+        "listHeaders": {
+          "es": {
+            "name": "Nombre",
+            "categoria": "Categoría",
+            "severidad": "Severidad",
+            "orden": "Orden"
+          }
+        }
+      }
     },
     {
       "id": "control-escolar.compartido",
@@ -330,7 +345,19 @@
     {
       "id": "control-escolar.periodos-examen",
       "path": "periodos-examen",
-      "permission": "subject.control-escolar.periodos-examen.read"
+      "permission": "subject.control-escolar.periodos-examen.read",
+      "leaf": {
+        "kind": "crud",
+        "appBase": "periodos-examen",
+        "icon": "fa-calendar-week",
+        "listHeaders": {
+          "es": {
+            "name": "Nombre",
+            "fecha_inicio": "Inicio",
+            "fecha_fin": "Fin"
+          }
+        }
+      }
     }
   ],
   "storage": {
