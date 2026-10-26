@@ -4,8 +4,8 @@
   "id": "SUBJECT-control-escolar",
   "technicalId": "subject-control-escolar",
   "name": "Control escolar",
-  "version": "0.5.2",
-  "image": "ghcr.io/opus-perpetuus/subject-control-escolar:0.5.2",
+  "version": "0.6.0",
+  "image": "ghcr.io/opus-perpetuus/subject-control-escolar:0.6.0",
   "compat": {
     "nox": ">=0.5.0",
     "kit": "^0.5.0"
