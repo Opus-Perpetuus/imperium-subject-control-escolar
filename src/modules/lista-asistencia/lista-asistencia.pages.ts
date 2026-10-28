@@ -61,13 +61,9 @@ export const lista_asistencia_pages: KirletPageDecl[] = [
               { name: "numero_lista", component: "input-number", label: "numero lista" },
               {
                 name: "estado",
-                component: "input-menu",
+                component: "input-status",
                 label: "Estado",
-                options: [
-                  { value: "pendiente", label: "Pendiente" },
-                  { value: "presente", label: "Presente" },
-                  { value: "ausente", label: "Ausente" },
-                ],
+                // Opciones: status-option-control (seed en status-seeds.ts).
               },
               { name: "justificada", component: "input-checkbox", label: "justificada" },
               { name: "evidencia", component: "input-image", label: "evidencia" },

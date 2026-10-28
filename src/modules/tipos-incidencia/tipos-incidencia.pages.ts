@@ -2,6 +2,7 @@ import {
   build_feature_shell_page,
   type KirletPageDecl,
 } from "@opus-perpetuus/imperium-core-kit";
+import { general_option_list_options_source } from "../../general-option-seeds.ts";
 
 const API = "api://m/subject-control-escolar";
 
@@ -53,22 +54,22 @@ export const tipos_incidencia_pages: KirletPageDecl[] = [
                 component: "input-radio-buttons",
                 label: "Categoría",
                 required: true,
-                options: [
-                  { value: "negativa", label: "Negativa" },
-                  { value: "positiva", label: "Positiva" },
-                  { value: "neutral", label: "Neutral" },
-                ],
+                // Opciones: general-option-list-control (seed en general-option-seeds.ts).
+                optionsSource: general_option_list_options_source(
+                  "subject-control-escolar/tipos-incidencia",
+                  "categoria",
+                ),
               },
               {
                 name: "severidad",
                 component: "input-radio-buttons",
                 label: "Severidad",
                 required: true,
-                options: [
-                  { value: "leve", label: "Leve" },
-                  { value: "grave", label: "Grave" },
-                  { value: "muy_grave", label: "Muy grave" },
-                ],
+                // Opciones: general-option-list-control (seed en general-option-seeds.ts).
+                optionsSource: general_option_list_options_source(
+                  "subject-control-escolar/tipos-incidencia",
+                  "severidad",
+                ),
               },
               { name: "orden", component: "input-number", label: "Orden en la pantalla", min: 0 },
               {

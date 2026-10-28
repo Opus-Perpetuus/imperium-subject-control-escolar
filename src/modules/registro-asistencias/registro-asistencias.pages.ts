@@ -60,12 +60,9 @@ export const registro_asistencias_pages: KirletPageDecl[] = [
               { name: "fecha_asistencia", component: "input-date", label: "fecha asistencia" },
               {
                 name: "estatus",
-                component: "input-menu",
+                component: "input-status",
                 label: "estatus",
-                options: [
-                  { value: "abierta", label: "Abierta" },
-                  { value: "cerrada", label: "Cerrada" },
-                ],
+                // Opciones: status-option-control (seed en status-seeds.ts).
               },
               { name: "total_alumnos", component: "input-number", label: "total alumnos" },
             ],
