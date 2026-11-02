@@ -1,6 +1,4 @@
 {
-  "$schema": "https://schemas.opus-perpetuus.dev/imperium/kirlet-manifest/1.0.json",
-  "manifestVersion": 1,
   "id": "SUBJECT-control-escolar",
   "technicalId": "subject-control-escolar",
   "name": "Control escolar",
@@ -334,7 +332,8 @@
             "severidad": "Severidad",
             "orden": "Orden"
           }
-        }
+        },
+        "permission": "subject.control-escolar.tipos-incidencia.read"
       }
     },
     {
@@ -356,7 +355,8 @@
             "fecha_inicio": "Inicio",
             "fecha_fin": "Fin"
           }
-        }
+        },
+        "permission": "subject.control-escolar.periodos-examen.read"
       }
     }
   ],
@@ -399,5 +399,7 @@
     "enlaces-compartidos": "enlaces-compartidos",
     "periodos-examen": "periodos-examen",
     "examenes": "examenes"
-  }
+  },
+  "manifestVersion": 1,
+  "$schema": "https://schemas.opus-perpetuus.dev/imperium/kirlet-manifest/1.0.json"
 }
