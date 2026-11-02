@@ -1,5 +1,6 @@
 import { define_subject } from "@opus-perpetuus/imperium-core-kit";
 import pkg from "../package.json" with { type: "json" };
+import { con_hojas } from "./page-leaves.ts";
 import { registro_incidencias_module } from "./modules/registro-incidencias/registro-incidencias.routes.ts";
 import { grupo_module } from "./modules/grupo/grupo.routes.ts";
 import { registro_asistencias_module } from "./modules/registro-asistencias/registro-asistencias.routes.ts";
@@ -31,7 +32,7 @@ export const SUBJECT = define_subject({
     label: "Control escolar",
     order: 0,
   },
-  modules: [
+  modules: con_hojas([
     registro_incidencias_module,
     grupo_module,
     registro_asistencias_module,
@@ -47,7 +48,7 @@ export const SUBJECT = define_subject({
     enlaces_compartidos_module,
     periodos_examen_module,
     examenes_module,
-  ],
+  ]),
   seed: seed_demo,
 });
 
