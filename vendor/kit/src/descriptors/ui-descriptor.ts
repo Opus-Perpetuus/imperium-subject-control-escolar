@@ -43,6 +43,9 @@ export type NoxUiComponentId =
   | "nox.input-textarea"
   | "nox.input-json"
   | "nox.input-number"
+  | "nox.input-operacion"
+  | "nox.input-scanner"
+  | "nox.input-subtable"
   | "nox.input-date"
   | "nox.input-checkbox"
   | "nox.input-hidden"
@@ -152,6 +155,9 @@ export const NOX_UI_COMPONENT_ALLOWLIST: readonly NoxUiComponentId[] = [
   "nox.input-textarea",
   "nox.input-json",
   "nox.input-number",
+  "nox.input-operacion",
+  "nox.input-scanner",
+  "nox.input-subtable",
   "nox.input-date",
   "nox.input-checkbox",
   "nox.input-hidden",
@@ -244,6 +250,9 @@ export const NOX_UI_MVP_RENDER_IDS: readonly NoxUiComponentId[] = [
   "nox.input-date",
   "nox.input-menu",
   "nox.input-number",
+  "nox.input-operacion",
+  "nox.input-scanner",
+  "nox.input-subtable",
   "nox.input-textarea",
   "nox.input-json",
   "nox.input-checkbox",
