@@ -23,7 +23,8 @@ export const SUBJECT = define_subject({
   name: "Control escolar",
   version: pkg.version,
   image: `ghcr.io/opus-perpetuus/subject-control-escolar:${pkg.version}`,
-  compat: { nox: ">=0.5.0", kit: "^0.5.0" },
+  compat: { nox: ">=13.83.0", kit: "^13.0.0" },
+  requires: { core: "13.83.0", front: "13.83.0" },
   schema_version: 4,
   // Solo la página de enlaces compartidos (familias y dirección) es pública.
   public: true,
